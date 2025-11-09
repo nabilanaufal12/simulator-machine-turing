@@ -1,7 +1,7 @@
 /**
  * Ini adalah kelas generik Mesin Turing.
  * Ia menerima 7-tuple (aturan) dan input, lalu menjalankannya.
- * * VERSI 2.0: Diperbarui untuk simulasi step-by-step
+ * * VERSI 2.1: Perbaikan bug Rewind (Infinite Loop)
  */
 export class TuringMachine {
     constructor(rules) {
@@ -28,16 +28,25 @@ export class TuringMachine {
      * @param {string} inputString - String yang akan divalidasi.
      */
     initialize(inputString) {
-        this.head = 0;
+        // --- PERUBAHAN DI SINI ---
+        this.head = 1; // 1. Mulai head di index 1 (setelah BLANK awal)
+        // -------------------------
+
         this.currentState = this.startState;
         this.trace = [];
         this.stepCount = 0;
 
+        let inputTape = [];
         if (inputString.length === 0) {
-            this.tape = [this.blankSymbol];
+            inputTape = [this.blankSymbol];
         } else {
-            this.tape = [...inputString];
+            inputTape = [...inputString];
         }
+
+        // --- PERUBAHAN DI SINI ---
+        // 2. Tambahkan BLANK di awal tape
+        this.tape = [this.blankSymbol, ...inputTape];
+        // -------------------------
 
         for (let i = 0; i < 100; i++) {
             this.tape.push(this.blankSymbol);
@@ -106,9 +115,14 @@ export class TuringMachine {
         } else if (moveDirection === 'L') {
             this.head--;
         }
+        
+        // --- PERUBAHAN DI SINI ---
+        // Kode pengaman ini masih bagus, tapi sekarang logika rewind akan
+        // secara alami berhenti di index 0 (BLANK) sebelum ini terjadi.
         if (this.head < 0) {
             this.head = 0;
         }
+        // -------------------------
 
         this.currentState = newState;
     }
